@@ -12,13 +12,13 @@ const registerUser = (req, res) => {
     const { name, email, password } = req.body;
 
     //inisiasi sql
-    const sql = 'INSERT INTO users VALUES(?, ?, ?)';
+    const sql = 'INSERT INTO Users(user_name, user_email, user_password) VALUES(?, ?, ?)';
 
     //hasing
     const passwordForDB = hashing('sha256', password);
 
     //validasi kondisi password, email, name tidak terisi
-    if(!name || !email || !password) {
+    if (!name || !email || !password) {
         console.log("Error Input");
         return res.status(400).json({
             success: false,
@@ -27,9 +27,9 @@ const registerUser = (req, res) => {
     };
 
     db.query(sql, [name, email, passwordForDB], (err, result) => {
-        if(err) {
-            console.log(err.message); 
-            return res.status(500).json({success: false, message: 'error db'});
+        if (err) {
+            console.log(err.message);
+            return res.status(500).json({ success: false, message: 'error db' });
         }
 
         res.status(201).json({
@@ -43,16 +43,15 @@ const userLogin = (req, res) => {
     //inisiasi email dan password;
     const { email, password } = req.body;
     const hashedPassword = hashing('sha256', password); //generate hashed password
-    
+
     //inisiasi sql
-    const sql = "SELECT email, password FROM users"; //retrieved hashed password
+    const sql = "SELECT user_id, user_password FROM users WHERE user_email = ?"; //aviel@gmail.com -> user_id, user_password;
 
     //inisiasi JWT TOKEN
-    const token = generateToken({email: email, password: hashedPassword}, process.env.PRIVATE_KEY, 'HS256');
-
-
+    
+    
     //ngambil password 
-    db.query(sql, (err, result) => {
+    db.query(sql, [email], (err, result) => {
         if (err) {
             console.log(err.message);
             return res.status(500).json({
@@ -61,34 +60,31 @@ const userLogin = (req, res) => {
                 errMess: err.message
             });
         };
-
-        //inisiasi user account
-        const isEmailAvail = result.find((item) => item.email === email); //return objek akun
+        
+        const token = generateToken({ id: result[0].user_id, email: email }, process.env.PRIVATE_KEY, 'HS256');
 
         //validasi akun || email dan password
-        if (!isEmailAvail) {
+        if (result.length === 0) { //kondisi akun belom ada.
             console.log('account not found');
             return res.status(400).json({
                 success: false,
                 message: 'account not found'
             });
-        }else {
-            if (isEmailAvail.password !== hashedPassword) {
-                console.log('wrong password input');
-                return res.status(400).json({
-                    success: false,
-                    message: 'wrong password'
-                });
-            };
-            return res.status(200).json({
-                success: true,
-                message: 'Login Succes',
-                accessGranted: true,
-                token: token
+        }
+        if (result[0].user_password !== hashedPassword) {
+            console.log('wrong password input');
+            return res.status(400).json({
+                success: false,
+                message: 'wrong password'
             });
         };
-
-    }); 
+        return res.status(200).json({
+            success: true,
+            message: 'Login Succes',
+            accessGranted: true,
+            token: token
+        });
+    });
 };
 
 //CRUD Controller
@@ -96,7 +92,7 @@ const getAllTasks = (req, res) => {
     const page = parseInt(req.query.page);
     const limit = parseInt(req.query.limit);
     const sql = 'SELECT * FROM Tasks';
-    
+
     console.log(req.u); //buat ngasih identitas siapa yang punya token yang dikirim via header.
 
     db.query(sql, (err, result) => {
@@ -175,7 +171,7 @@ const deleteTasks = (req, res) => {
 
     console.log(user);
     const sql = 'delete from Tasks where id = ?';
-    
+
     db.query(sql, [id], (err, result) => {
         if (err) {
             console.log('db query error');
@@ -185,7 +181,7 @@ const deleteTasks = (req, res) => {
                 errMess: err.message
             });
         };
-        
+
         res.status(203).json({
             success: true,
             message: 'Tasks deleted'
