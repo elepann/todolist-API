@@ -47,7 +47,6 @@ const userLogin = (req, res) => {
     //inisiasi sql
     const sql = "SELECT user_id, user_password FROM users WHERE user_email = ?"; //aviel@gmail.com -> user_id, user_password;
 
-    //inisiasi JWT TOKEN
     
     
     //ngambil password 
@@ -61,8 +60,9 @@ const userLogin = (req, res) => {
             });
         };
         
+        //inisiasi JWT TOKEN
         const token = generateToken({ id: result[0].user_id, email: email }, process.env.PRIVATE_KEY, 'HS256');
-
+        
         //validasi akun || email dan password
         if (result.length === 0) { //kondisi akun belom ada.
             console.log('account not found');
@@ -121,7 +121,7 @@ const getAllTasks = (req, res) => {
 
 const getSingleTasks = (req, res) => {
     const id = parseInt(req.params.id);
-    const sql = 'select id, title, description from Tasks where id = ?';
+    const sql = 'select task_id, task_title, task_description from Tasks where task_id = ?';
 
     //sql execution
     db.query(sql, [id], (err, result) => {
@@ -143,8 +143,8 @@ const getSingleTasks = (req, res) => {
 };
 
 const createTasks = (req, res) => {
-    const { title, description } = req.body;
-    const sql = 'insert into Tasks(title, description) values(?, ?)';
+    const { task_title, task_description } = req.body;
+    const sql = 'insert into Tasks(task_title, task_description) values(?, ?)';
 
     db.query(sql, [title, description], (err, result) => {
         if (err) {
@@ -170,7 +170,7 @@ const deleteTasks = (req, res) => {
     const user = req.user;
 
     console.log(user);
-    const sql = 'delete from Tasks where id = ?';
+    const sql = 'delete from Tasks where task_id = ?';
 
     db.query(sql, [id], (err, result) => {
         if (err) {
@@ -198,7 +198,7 @@ const updateTasks = (req, res) => {
     const setClause = Object.entries(rawData).map((item) => item[0] + ` = ?`).join(', ');
     //value 
     const value = Object.entries(rawData).map(([_key, val]) => val).join(', ');
-    const sql = `update Tasks set ${setClause} where id = ?`;
+    const sql = `update Tasks set ${setClause} where task_id = ?`;
 
     if (error) {
         console.log(error.message);
