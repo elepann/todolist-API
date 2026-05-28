@@ -8,8 +8,8 @@ routes.post('/register', registerUser);
 routes.post('/login', userLogin);
 routes.get('/todos', verifyToken, getAllTasks);
 routes.get('/todos/:id', verifyToken, getSingleTasks);
-routes.post('/todos', verifyToken, validateCreateSchema, createTasks);
+routes.post('/todos', verifyToken, createTasks);
 routes.delete('/todos/:id', verifyToken, deleteTasks);
-routes.put('/todos/:id', verifyToken, validateUpdateSchema, updateTasks);
+routes.put('/todos/:id', verifyToken, updateTasks);
 
 module.exports = routes;

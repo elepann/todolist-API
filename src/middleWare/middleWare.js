@@ -25,7 +25,7 @@ const verifyToken = (req, res, next) => {
             });
         };
 
-        req.u = user; //ngasih ktp, identitas buat si token. dia verify token, decode token, lalu nempelin isi token ke req.user. jadi bisa dipake buat authorized nanti.
+        req.user = user; //ngasih ktp, identitas buat si token. dia verify token, decode token, lalu nempelin isi token ke req.user. jadi bisa dipake buat authorized nanti.
         next();
     });
 };
